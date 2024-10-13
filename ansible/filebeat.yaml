@@ -1,0 +1,33 @@
+---
+- hosts: web
+  become: yes
+  vars:
+    kibana_host: 10.0.4.3:5601
+    elastic_host: 10.0.3.4:9200
+
+  gather_facts: true
+  tasks:
+    - name: Копируем filebeat
+      copy:
+        src: /home/user/ansible/filebeat-8.15.1-amd64.deb
+        
+        dest: /home/user
+
+    - name: Устанавливаем filebeat
+      apt:
+        deb: /home/user/filebeat-8.15.1-amd64.deb
+
+    - name: Копируем конфиг filebeat
+      template:
+        src: /home/user/ansible/filebeat.yml.j2
+        dest: /etc/filebeat/filebeat.yml
+
+    - name: filebeat автозагрузка
+      systemd:
+        name: filebeat.service
+        enabled: true
+
+    - name: Перезапускаем службы
+      systemd:
+        name: filebeat.service
+        state: started
